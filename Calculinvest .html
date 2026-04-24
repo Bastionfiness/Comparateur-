@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>📊 Comparateur Crédit vs Cash + Invest Perso</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f8f9fa;
+            color: #333;
+        }
+        .box {
+            background: white;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h2 {
+            margin-top: 0;
+            color: #007bff;
+            font-size: 1.4em;
+        }
+        .row {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+        }
+        .row label {
+            width: 220px;
+            font-weight: bold;
+        }
+        .row input[type="range"] {
+            flex: 1;
+        }
+        .row span {
+            margin-left: 10px;
+            min-width: 100px;
+            font-weight: bold;
+        }
+        button {
+            display: block;
+            margin: 20px 0;
+            padding: 12px 30px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #218838;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            padding: 12px 10px;
+            text-align: right;
+            border-bottom: 1px solid #eee;
+        }
+        th {
+            background: #007bff;
+            color: white;
+        }
+        .best {
+            background: #d4edda;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧮 Comparateur : Crédit + Banque vs Cash + Invest Perso</h1>
+    <p>Modifie les curseurs, clique sur <strong>Calculer</strong> pour voir le meilleur scénario.</p>
+
+    <!-- Crédit + banque -->
+    <div class="box">
+        <h2>🏦 Crédit + investissement bancaire</h2>
+        <div class="row">
+            <label>Prix maison (€)</label>
+            <input type="range" id="prix_maison" min="100000" max="2000000" value="250000" step="10000">
+            <span id="prix_maison_txt">250 000 €</span>
+        </div>
+        <div class="row">
+            <label>Apport maison (€)</label>
+            <input type="range" id="apport_maison" min="0" max="1000000" value="50000" step="10000">
+            <span id="apport_maison_txt">50 000 €</span>
+        </div>
+        <div class="row">
+            <label>Taux crédit (%)</label>
+            <input type="range" id="taux_credit" min="1" max="8" value="3.35" step="0.05">
+            <span id="taux_credit_txt">3.35 %</span>
+        </div>
+        <div class="row">
+            <label>Durée crédit (ans)</label>
+            <input type="range" id="duree_credit" min="10" max="35" value="20" step="1">
+            <span id="duree_credit_txt">20 ans</span>
+        </div>
+        <div class="row">
+            <label>Capital pour banque (€)</label>
+            <input type="range" id="capital_banque" min="0" max="1000000" value="100000" step="10000">
+            <span id="capital_banque_txt">100 000 €</span>
+        </div>
+        <div class="row">
+            <label>Rendement banque (%)</label>
+            <input type="range" id="rendement_banque" min="1" max="8" value="4.2" step="0.1">
+            <span id="rendement_banque_txt">4.2 %</span>
+        </div>
+    </div>
+
+    <!-- Cash + invest perso -->
+    <div class="box">
+        <h2>💰 Cash + investissement perso</h2>
+        <div class="row">
+            <label>Capital disponible (€)</label>
+            <input type="range" id="capital_cash" min="10000" max="2000000" value="300000" step="10000">
+            <span id="capital_cash_txt">300 000 €</span>
+        </div>
+        <div class="row">
+            <label>Rendement perso (%)</label>
+            <input type="range" id="rendement_perso" min="1" max="20" value="5.5" step="0.1">
+            <span id="rendement_perso_txt">5.5 %</span>
+        </div>
+        <div class="row">
+            <label>Durée (ans)</label>
+            <input type="range" id="duree_cash" min="5" max="40" value="20" step="1">
+            <span id="duree_cash_txt">20 ans</span>
+        </div>
+    </div>
+
+    <!-- Bouton -->
+    <button onclick="calculer()">🚀 Calculer le comparatif</button>
+
+    <!-- Tableau -->
+    <div class="box">
+        <h2>📊 Résultats</h2>
+        <table id="result_table">
+            <thead>
+                <tr>
+                    <th>Scénario</th>
+                    <th>Montant initial</th>
+                    <th>Mensualité</th>
+                    <th>Intérêts</th>
+                    <th>Invest final</th>
+                    <th>Patrimoine final</th>
+                    <th>Meilleur ?</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <script>
+        function updateLabels() {
+            ["prix_maison", "apport_maison", "capital_banque", "capital_cash"].forEach(id => {
+                let val = document.getElementById(id).value;
+                let span = document.getElementById(id + "_txt");
+                if (span) span.textContent = val.replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " €";
+            });
+            ["taux_credit", "rendement_banque", "rendement_perso"].forEach(id => {
+                let val = document.getElementById(id).value;
+                let span = document.getElementById(id + "_txt");
+                if (span) span.textContent = val + " %";
+            });
+            ["duree_credit", "duree_cash"].forEach(id => {
+                let val = document.getElementById(id).value;
+                let span = document.getElementById(id + "_txt");
+                if (span) span.textContent = val + " ans";
+            });
+        }
+
+        function formatNumber(x) {
+            return parseInt(x).toLocaleString("fr-FR");
+        }
+
+        ["prix_maison", "apport_maison", "taux_credit", "duree_credit", "capital_banque", "rendement_banque", "capital_cash", "rendement_perso", "duree_cash"].forEach(id => {
+            document.getElementById(id).addEventListener("input", updateLabels);
+        });
+
+        function calcMensualite(emprunt, taux, duree) {
+            let r = taux / 100 / 12;
+            let n = duree * 12;
+            if (n === 0) return 0;
+            if (r === 0) return emprunt / n;
+            return emprunt * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1);
+        }
+
+        function calculer() {
+            // Crédit + banque
+            let prix      = parseFloat(document.getElementById("prix_maison").value);
+            let apport    = parseFloat(document.getElementById("apport_maison").value);
+            let taux      = parseFloat(document.getElementById("taux_credit").value);
+            let duree     = parseFloat(document.getElementById("duree_credit").value);
+            let capital_b = parseFloat(document.getElementById("capital_banque").value);
+            let rendB     = parseFloat(document.getElementById("rendement_banque").value);
+
+            // Cash + perso
+            let capital_p = parseFloat(document.getElementById("capital_cash").value);
+            let rendP     = parseFloat(document.getElementById("rendement_perso").value);
+            let duree_p   = parseFloat(document.getElementById("duree_cash").value);
+
+            // Calculs crédit
+            let emprunt = prix - apport;
+            let mens    = calcMensualite(emprunt, taux, duree);
+            let interets = mens * duree * 12 - emprunt;
+            let benef_b = capital_b * (Math.pow(1 + rendB/100, duree) - 1);
+            let final_b = prix + benef_b;
+
+            // Calculs perso
+            let benef_p = capital_p * (Math.pow(1 + rendP/100, duree_p) - 1);
+            let final_p = benef_p;
+
+            let gagnant = final_b > final_p ? "credit" : "cash";
+
+            let tbody = document.querySelector("#result_table tbody");
+            tbody.innerHTML = `
+                <tr>
+                    <td><strong>Crédit + Invest banque</strong></td>
+                    <td>${formatNumber(capital_b)} €</td>
+                    <td>${formatNumber(Math.round(mens))} €</td>
+                    <td>${formatNumber(Math.round(interets))} €</td>
+                    <td>${formatNumber(Math.round(benef_b))} €</td>
+                    <td class="${gagnant === 'credit' ? 'best' : ''}">${formatNumber(Math.round(final_b))} €</td>
+                    <td>${gagnant === 'credit' ? '✅' : ''}</td>
+                </tr>
+                <tr>
+                    <td><strong>Cash + Invest perso</strong></td>
+                    <td>${formatNumber(capital_p)} €</td>
+                    <td>0 €</td>
+                    <td>0 €</td>
+                    <td>${formatNumber(Math.round(benef_p))} €</td>
+                    <td class="${gagnant === 'cash' ? 'best' : ''}">${formatNumber(Math.round(final_p))} €</td>
+                    <td>${gagnant === 'cash' ? '✅' : ''}</td>
+                </tr>
+            `;
+        }
+
+        updateLabels();
+        calculer(); // Init au chargement
+    </script>
+</body>
+</html>
+           
